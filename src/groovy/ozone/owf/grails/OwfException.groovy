@@ -1,0 +1,30 @@
+package ozone.owf.grails
+
+enum OwfExceptionTypes {
+	Authorization(401, 'You are not authorized to access this entity.'),
+	Database(500, 'An unexpected database error occurred.'),
+	NotFound(404, 'The requested entity was not found.'),
+	Validation(400, 'The requested entity failed to pass validation.'),
+	Validation_UniqueConstraint(400, 'The requested entity failed to pass unique constraint validation.'),
+	JsonToDomainColumnMapping(500, 'The json property has not been mapped to a domain column.'),
+	GeneralServerError(500, ''),
+
+	// Added by Webtops
+	Configuration(500, 'There is an error in the application configuration. Please contact the Enterprise Webtops team for help resolving the problem.'),
+	InputValidation(500, 'Data supplied from the user interface does not properly validate.'),
+	LimitConditionExceeded(403, 'The requested action, while valid, would result in an invalid end-state and is therefore denied.')
+
+	def normalReturnCode
+	def generalMessage
+
+	OwfExceptionTypes(normalReturnCode, generalMessage) {
+		this.normalReturnCode = normalReturnCode
+		this.generalMessage = generalMessage
+	}
+}
+
+public class OwfException extends RuntimeException {
+	String message
+	OwfExceptionTypes exceptionType
+	String logLevel = 'ERROR'
+}

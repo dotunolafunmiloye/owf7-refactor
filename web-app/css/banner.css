@@ -1,0 +1,11 @@
+#customHeaderComponent table {
+	height: 20px;
+	width: 100%;
+}
+
+#customHeaderComponent table td {
+	background-color: yellow;
+	font-size: 14px;
+	text-align: center;
+	width: 100%;
+}

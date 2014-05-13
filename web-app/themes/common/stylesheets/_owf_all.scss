@@ -1,0 +1,54 @@
+// Sprites
+
+// Themes should put one of these in their scss files for the sprite packs
+
+
+@import '../../common/images/sprites/default-wob/*.png';
+@import '../../common/images/sprites/default-bow/*.png';
+
+
+// Each theme should include one of these two blocks, or an equivalent sprite pack
+//@mixin owf-sprite($name, $dimensions: $default-wob-sprite-dimensions, $offset-x: 0, $offset-y: 0) {
+//  @include default-wob-sprite($name, $dimensions, $offset-x, $offset-y)
+//}
+
+//@mixin owf-sprite($name, $dimensions: $default-bow-sprite-dimensions, $offset-x: 0, $offset-y: 0) {
+//  @include default-bow-sprite($name, $dimensions, $offset-x, $offset-y)
+//}
+
+		  
+		  		$logo-img-height: default-wob-sprite-height(user_menu);
+		  		$logo-img-width: default-wob-sprite-height(user_menu);
+
+// Stylesheets
+@import 'grid';
+
+@import '_font_awesome';
+@import 'tooltip';
+@import 'main';
+@import 'buttons';
+@import 'aboutWindow';
+@import 'admin/admin';
+@import 'adminWidget';
+@import 'banner';
+@import 'desktop';
+@import 'manageWindowContainers';
+@import 'widget';
+@import 'profileWindow';
+@import 'systemWindow';
+@import 'dashboardSwitcher';
+@import 'widgetSwitcher';
+@import 'widgetLauncher';
+@import 'marketplaceWindow';
+@import 'portal';
+@import 'singletonOverlay';
+@import 'themeSwitcher';
+@import 'settingsWindow';
+@import 'searchBox';
+@import 'widgetChrome';
+@import 'channelListener';
+@import 'dashboardDesigner';
+@import 'notifications';
+
+@import 'dragAndDrop';
+@import 'dashboardSplitter';
