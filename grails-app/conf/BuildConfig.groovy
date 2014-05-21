@@ -126,9 +126,9 @@ grails.project.dependency.resolution = {
 		compile ('org.springframework.security:spring-security-core:3.0.+', 'org.springframework.security:spring-security-web:3.0.+', 'org.springframework.security:spring-security-config:3.0.+') {
 			excludes 'commons-logging'
 		}
-		compile ("${config.owf.security.org}:${config.owf.security.module}:7.6.+", 'unboundid:unboundid-ldapsdk:se') {
-			transitive = false
-		}
+		//compile ("${config.owf.security.org}:${config.owf.security.module}:7.6.+", 'unboundid:unboundid-ldapsdk:se') {
+		//	transitive = false
+		//}
 
 		// HTTP Client
 		compile('org.apache.httpcomponents:httpcore:4.1.1', 'org.apache.httpcomponents:httpclient:4.1.1') {
@@ -140,17 +140,17 @@ grails.project.dependency.resolution = {
 		compile("com.yammer.metrics:metrics-core:${yammerVersion}", "com.yammer.metrics:metrics-jvm:${yammerVersion}" ) {
 			excludes 'slf4j-api'
 		}
-		compile('ozone:ozone-metric-tools:1.1+') {
-			excludes 'slf4j-api'
-			changing = true
-		}
+		//compile('ozone:ozone-metric-tools:1.1+') {
+		//	excludes 'slf4j-api'
+		//	changing = true
+		//}
 	}
 
 	plugins {
 		build ":tomcat:$grailsVersion"
 		//		build ':compass:1.1'
 		// See the webxml plugin below....
-		build ':ozone-deploy:0.1'
+	//	build ':ozone-deploy:0.1'
 		//		build ':webxml:1.4+'
 		build (':code-coverage:1.2.5') {
 			excludes 'log4j', 'ant'

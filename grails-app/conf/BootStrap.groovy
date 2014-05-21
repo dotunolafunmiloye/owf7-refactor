@@ -7,8 +7,8 @@ import java.util.concurrent.TimeUnit
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-import org.ozone.metrics.JmxSslBootStrapper
-import org.ozone.metrics.hibernate.HibernateSQLCounterAppender
+// import org.ozone.metrics.JmxSslBootStrapper
+// import org.ozone.metrics.hibernate.HibernateSQLCounterAppender
 
 import ozone.owf.gorm.AuditStamp
 import ozone.owf.grails.domain.Dashboard
@@ -255,15 +255,15 @@ class BootStrap {
 
 	private setupMetrics() {
 		// Hook up some metrics
-		org.ozone.metrics.HibernateMetrics.measureAllStatistics(sessionFactory, metricRegistry)
-		org.ozone.metrics.EhcacheMetrics.measureAll(metricRegistry)
+//		org.ozone.metrics.HibernateMetrics.measureAllStatistics(sessionFactory, metricRegistry)
+//		org.ozone.metrics.EhcacheMetrics.measureAll(metricRegistry)
+//
+//		metricRegistry.register("jvm.bufferPools", new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()))
+//		metricRegistry.register("jvm.garbageCollection", new GarbageCollectorMetricSet())
+//		metricRegistry.register("jvm.memory", new MemoryUsageGaugeSet())
+//		metricRegistry.register("jvm.fileDescriptorUsage", new FileDescriptorRatioGauge())
 
-		metricRegistry.register("jvm.bufferPools", new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()))
-		metricRegistry.register("jvm.garbageCollection", new GarbageCollectorMetricSet())
-		metricRegistry.register("jvm.memory", new MemoryUsageGaugeSet())
-		metricRegistry.register("jvm.fileDescriptorUsage", new FileDescriptorRatioGauge())
-
-		HibernateSQLCounterAppender.inject()
+//		HibernateSQLCounterAppender.inject()
 	}
 
 	private void rollCSVMetrics(File f) {
