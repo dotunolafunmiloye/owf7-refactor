@@ -76,6 +76,14 @@ class AdministrationServiceTests extends OWFGroovyTestCase {
 	}
 
 	void testListUsersForUserAdminWidget() {
+
+        // Remove leftover data from earlier tests
+        // THIS IS BAD, PLEASE FIX THIS
+        Group.list()*.delete()
+        PersonWidgetDefinition.list()*.delete()
+        Person.list()*.delete()
+
+
 		Person.build(username: 'BogusUser1', userRealName: 'Bogus User Number 1')
 		Person.build(username: 'BogusUser2', userRealName: 'Bogus User Number 2')
 		Person.build(username: 'BogusUser3', userRealName: 'Bogus User Number 3')

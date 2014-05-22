@@ -157,6 +157,8 @@ grails.project.dependency.resolution = {
 		}
 
 		compile ':cache:1.0.0'
+                compile 'org/ozoneplatform:aml-commons-security:3.2.0'
+
 
 		// Remove UIPerformance when we're ready to go with the native resources plugin.
 		runtime ':ui-performance:1.2.2'

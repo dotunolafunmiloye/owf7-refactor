@@ -1,7 +1,7 @@
 import grails.util.GrailsUtil
 
-import org.ozone.metrics.MetricsAdvice
-import org.ozone.metrics.hibernate.HibernateSQLCountAdvice
+// import org.ozone.metrics.MetricsAdvice
+// import org.ozone.metrics.hibernate.HibernateSQLCountAdvice
 
 import ozone.owf.grails.OwfExceptionResolver
 import ozone.owf.grails.domain.ERoleAuthority
@@ -66,6 +66,7 @@ beans = {
 		importBeans "classpath*:resources/owf/OWFLogInOutBeans.xml"
 		importBeans "classpath*:resources/owf/OWFsecurityContext.xml"
 
+		/*
 		metricsAdvice(MetricsAdvice)
 		hibernateSqlAdvice(HibernateSQLCountAdvice)
 
@@ -82,6 +83,7 @@ beans = {
 				}
 			}
 		}
+		*/
 
 		// These two items are absolutely required when loading the XML files
 		// via the BeanBuilder.  If you forget the first one, Spring complains

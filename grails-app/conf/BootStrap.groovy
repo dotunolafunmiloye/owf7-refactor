@@ -225,6 +225,7 @@ class BootStrap {
 				Person.executeUpdate("update Person p set p.username = UCASE(p.username)")
 			}
 
+			/*
 			if (servletContext.contextPath == '/owf') {
 				int jmxPort = grailsApplication.config.jmxSslPort ?: 8011
 				println "Starting SSL JMX on port ${jmxPort}"
@@ -248,6 +249,7 @@ class BootStrap {
 					JmxReporter.forRegistry(metricRegistry).registerWith(jmxServer.getMBeanServer()).build().start()
 				}
 			}
+			*/
 		}
 
 		println 'BootStrap finished!'
