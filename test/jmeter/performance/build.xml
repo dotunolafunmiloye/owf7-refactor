@@ -1,0 +1,194 @@
+<project default="all">
+	<!-- Define an environment variable pointing to JMETER folder or change this -->
+	<property environment="env" />
+	<condition property="jmeter-home" value="${env.JMETER_DIR}" else="C:\apache-jmeter-2.6">
+		<isset property="env.JMETER_DIR" />
+	</condition>
+
+	<taskdef resource="net/sf/antcontrib/antlib.xml" classpath="./ant-contrib.jar" />
+
+	<!-- ant-jmeter.jar comes with jmeter, be sure this is the release you have -->
+	<path id="ant.jmeter.classpath">
+		<pathelement location="${jmeter-home}/extras/ant-jmeter-1.0.9.jar" />
+	</path>
+	<taskdef name="jmeter" classname="org.programmerplanet.ant.taskdefs.jmeter.JMeterTask" classpathref="ant.jmeter.classpath" />
+
+	<!-- Added by Webtops -->
+	<property name="outputDirJtl" value="test-reports/jtl" />
+	<property name="outputDirHtml" value="test-reports/html" />
+	<condition property="hostName" value="${HOST_NAME}" else="localhost">
+		<isset property="HOST_NAME" />
+	</condition>
+	<condition property="hostPort" value="${HOST_PORT}" else="9502">
+		<isset property="HOST_PORT" />
+	</condition>
+	<condition property="hostMetricPort" value="${HOST_METRIC_PORT}" else="6502">
+		<isset property="HOST_METRIC_PORT" />
+	</condition>
+
+	<!-- Performance Variables -->
+	<!-- for a variable from the ant command line like ant -DLOOPS_PER_USER=11 -->
+	<condition property="loopsPerUser" value="${LOOPS_PER_USER}" else="10">
+		<isset property="LOOPS_PER_USER" />
+	</condition>
+	<condition property="loopsPerAdmin" value="${LOOPS_PER_ADMIN}" else="10">
+		<isset property="LOOPS_PER_ADMIN" />
+	</condition>
+	<condition property="numAdmins" value="${NUM_ADMINS}" else="5">
+		<isset property="NUM_ADMINS" />
+	</condition>
+	<condition property="numUsers" value="${NUM_USERS}" else="10">
+		<isset property="NUM_USERS" />
+	</condition>
+
+	<!-- Scenario Variables -->
+	<condition property="scenarioNumUsers" value="${SCENARIO_NUM_USERS}" else="400">
+		<isset property="SCENARIO_NUM_USERS" />
+	</condition>
+	<condition property="scenarioLoopsPerUser" value="${SCENARIO_LOOPS_PER_USER}" else="100">
+		<isset property="SCENARIO_LOOPS_PER_USER" />
+	</condition>
+	<condition property="scenarioNewUsers%" value="${SCENARIO_NEW_USERS_%}" else="10">
+		<isset property="SCENARIO_NEW_USER_%" />
+	</condition>
+	<condition property="scenarioInitialLoginUsers%" value="${SCENARIO_INITIAL_LOGIN_USERS_%}" else="40">
+		<isset property="SCENARIO_INITIAL_LOGIN_USERS_%" />
+	</condition>
+	<condition property="scenarioInitialLoginTime" value="${SCENARIO_INITIAL_LOGIN_TIME}" else="900000">
+		<isset property="SCENARIO_INITIAL_LOGIN_TIME" />
+	</condition>
+	<condition property="scenarioTotalLoginTime" value="${SCENARIO_TOTAL_LOGIN_TIME}" else="3600000">
+		<isset property="SCENARIO_TOTAL_LOGIN_TIME" />
+	</condition>
+	<condition property="scenarioMinDelay" value="${SCENARIO_MIN_DELAY}" else="3000">
+		<isset property="SCENARIO_MIN_DELAY" />
+	</condition>
+	<condition property="scenarioMaxDelay" value="${SCENARIO_MAX_DELAY}" else="60000">
+		<isset property="SCENARIO_MAX_DELAY" />
+	</condition>
+	<condition property="scenarioRealisticLoginEnabled" value="${SCENARIO_REALISTIC_LOGIN_ENABLED}" else="true">
+		<isset property="SCENARIO_REALISTIC_LOGIN_ENABLED" />
+	</condition>
+	<condition property="scenarioInitialLoginEnabled" value="${SCENARIO_INITIAL_LOGIN_ENABLED}" else="true">
+		<isset property="SCENARIO_INITIAL_LOGIN_ENABLED" />
+	</condition>
+
+	<target name="clean">
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${outputDirJtl}">
+			</fileset>
+			<fileset dir="${outputDirHtml}">
+			</fileset>
+		</delete>
+		<mkdir dir="${outputDirJtl}" />
+		<mkdir dir="${outputDirHtml}" />
+	</target>
+
+	<target name="logParameters">
+		<echo message="jmeter-home: ${jmeter-home}" />
+		<echo message="numAdmins: ${numAdmins}" />
+		<echo message="numUsers: ${numUsers}" />
+		<echo message="loopsPerUser: ${loopsPerUser}" />
+		<echo message="loopsPerAdmin: ${loopsPerAdmin}" />
+		<echo message="---Scenario Variables---/>" />
+		<echo message="scenarioNumUsers: ${scenarioNumUsers}" />
+		<echo message="scenarioLoopsPerUser: ${scenarioLoopsPerUser}" />
+		<echo message="scenarioNewUsers%: ${scenarioNewUsers%}" />
+		<echo message="scenarioInitialLoginUsers%: ${scenarioInitialLoginUsers%}" />
+		<echo message="scenarioInitialLoginTime: ${scenarioInitialLoginTime}" />
+		<echo message="scenarioTotalLoginTime: ${scenarioTotalLoginTime}" />
+		<echo message="scenarioMinDelay: ${scenarioMinDelay}" />
+		<echo message="scenarioMaxDelay: ${scenarioMaxDelay}" />
+		<echo message="scenarioRealisticLoginEnabled: ${scenarioRealisticLoginEnabled}" />
+		<echo message="scenarioInitialLoginEnabled: ${scenarioInitialLoginEnabled}" />
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: run-single-perf-test                      
+         - - - - - - - - - - - - - - - - - -->
+	<target name="run-single-perf-test">
+		<echo>File: ${perfFileName}</echo>
+		<jmeter jmeterhome="${jmeter-home}" resultlogdir="${outputDirJtl}" testplan="${perfFileName}">
+			<property name="hostName" value="${hostName}" />
+			<property name="hostPort" value="${hostPort}" />
+			<property name="casHost" value="${hostName}" />
+			<property name="casPort" value="${hostPort}" />
+			<property name="metricHostName" value="${hostName}" />
+			<property name="metricHostPort" value="${hostMetricPort}" />
+			<property name="loopsPerUser" value="${loopsPerUser}" />
+			<property name="loopsPerAdmin" value="${loopsPerAdmin}" />
+			<property name="numAdmins" value="${numAdmins}" />
+			<property name="numUsers" value="${numUsers}" />
+
+			<jvmarg value="-Xms256m" />
+			<jvmarg value="-Xmx512m" />
+		</jmeter>
+	</target>
+
+	<target name="performance-test" depends="clean, logParameters">
+		<!--execute performance tests-->
+		<!-- 
+		Partitioning the tests into bite-sized chunks to avoid running out
+		of RAM in the JMeter JVM.  Server is just fine, but it appears that JMeter
+		creates some long-lived objects to the point that it runs out of gas.
+		
+		Hoping that splitting into pieces allows JMeter to shutdown, GC all the
+		objects and start afresh. Might be nice, too, for splitting this among several
+		servers....
+		-->
+
+		<foreach inheritall="true" target="run-single-perf-test" param="perfFileName">
+			<fileset dir=".">
+				<include name="*.jmx" />
+				<exclude name="scenario_1.jmx" />
+				<exclude name="prep_server.jmx" />
+				<exclude name="send_metric.jmx" />
+			</fileset>
+		</foreach>
+	</target>
+
+	<target name="scenario-test" depends="">
+		<!--execute scenario tests-->
+		<jmeter jmeterhome="${jmeter-home}" resultlogdir="${outputDirJtl}">
+			<property name="hostName" value="wks-wdv-l54r707" />
+			<property name="hostPort" value="9502" />
+			<property name="casHost" value="wks-wdv-l54r707" />
+			<property name="casPort" value="9502" />
+			<property name="metricHostName" value="wks-wdv-l54r707" />
+			<property name="metricHostPort" value="6502" />
+			<property name="loopsPerUser" value="${scenarioLoopsPerUser}" />
+			<property name="numUsers" value="${scenarioNumUsers}" />
+			<property name="newUsers%" value="${scenarioNewUsers%}" />
+			<property name="initialLoginUsers%" value="${scenarioInitialLoginUsers%}" />
+			<property name="initialLoginTime" value="${scenarioInitialLoginTime}" />
+			<property name="totalLoginTime" value="${scenarioTotalLoginTime}" />
+			<property name="minDelayBetweenActions" value="${scenarioMinDelay}" />
+			<property name="maxDelayBetweenActions" value="${scenarioMaxDelay}" />
+			<property name="realisticLoginEnabled" value="${scenarioRealisticLoginEnabled}" />
+			<property name="initialLoginEnabled" value="${scenarioInitialLoginEnabled}" />
+
+			<jvmarg value="-Xms256m" />
+			<jvmarg value="-Xmx512m" />
+
+			<testplans dir=".">
+				<include name="scenario_*.jmx" />
+			</testplans>
+		</jmeter>
+	</target>
+
+	<!-- This is not needed for the plugin, but it produces a nice html report
+	which can be saved using hudson's archive artifact feature -->
+	<target name="performance-report" depends="">
+		<xslt basedir="${outputDirJtl}" destdir="${outputDirHtml}" includes="*.jtl" style="${jmeter-home}/extras/jmeter-results-detail-report_21.xsl" />
+	</target>
+	<target name="scenario-report" depends="scenario-test">
+		<xslt basedir="${outputDirJtl}" destdir="${outputDirHtml}" includes="*.jtl" style="${jmeter-home}/extras/jmeter-results-detail-report_21.xsl" />
+	</target>
+
+	<!-- ================================= 
+          target: JMetersOnly              
+         ================================= -->
+	<target name="JMetersOnly" depends="performance-report" description="Run only the included JMeter tests, not the scenarios." />
+
+	<target name="all" depends="performance-report, scenario-report" description="Run all JMeter tests, including scenario tests." />
+</project>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="
+      http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+      http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+	<bean id="metricRegistry" class="com.yammer.metrics.MetricRegistry">
+		<constructor-arg>
+			<value>OWF</value>
+		</constructor-arg>
+	</bean>
+
+	<bean id="metricsAdvice" class="org.ozone.metrics.MetricsAdvice" />
+	<bean id="hibernateSqlAdvice" class="org.ozone.metrics.hibernate.HibernateSQLCountAdvice" />
+
+	<aop:config proxy-target-class="true">
+		<aop:pointcut id="servicesControllerPointcut"
+			expression="( 
+	  		execution(* ozone..*Controller.*(..)) 
+	  		or execution(* ozone..*Service.*(..)) 
+	  	) and !execution(* *.getMetaClass(..)) " />
+		<aop:aspect id="metricsGatheringAspect" ref="metricsAdvice">
+			<aop:around pointcut-ref="servicesControllerPointcut"
+				method="logMetrics" />
+		</aop:aspect>
+		<aop:aspect id="hibernateSqlAspect" ref="hibernateSqlAdvice">
+			<aop:around pointcut-ref="servicesControllerPointcut"
+				method="logMetrics" />
+		</aop:aspect>
+	</aop:config>
+</beans>

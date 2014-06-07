@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration>
+
+	<!-- Base rolling policy appenders and the files they map onto. -->
+	<appender name="roller" class="org.apache.log4j.rolling.RollingFileAppender">
+		<rollingPolicy class="org.apache.log4j.rolling.FixedWindowRollingPolicy">
+			<param name="activeFileName" value="C:\\LocalApps\\logs\\log4j_output.log" />
+			<param name="fileNamePattern" value="C:\\LocalApps\\logs\\log4j_output.%i.log" />
+			<param name="minIndex" value="1" />
+			<param name="maxIndex" value="5" />
+		</rollingPolicy>
+		<triggeringPolicy class="org.apache.log4j.rolling.SizeBasedTriggeringPolicy">
+			<param name="maxFileSize" value="10485760" />
+		</triggeringPolicy>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="conversionPattern" value="%5p %d [user: %X{OzoneUser}] %c - %m%n" />
+		</layout>
+	</appender>
+
+	<appender name="vde" class="org.apache.log4j.rolling.RollingFileAppender">
+		<rollingPolicy class="org.apache.log4j.rolling.FixedWindowRollingPolicy">
+			<param name="activeFileName" value="${CATALINA_NLOGS}/log4j_vde.log" />
+			<param name="fileNamePattern" value="${CATALINA_NLOGS}/log4j_vde.%i.log" />
+			<param name="minIndex" value="1" />
+			<param name="maxIndex" value="5" />
+		</rollingPolicy>
+		<triggeringPolicy class="org.apache.log4j.rolling.SizeBasedTriggeringPolicy">
+			<param name="maxFileSize" value="10485760" />
+		</triggeringPolicy>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="conversionPattern" value="%5p %d [user: %X{OzoneUser}] %c - %m%n" />
+		</layout>
+	</appender>
+	<appender name="audit" class="org.apache.log4j.rolling.RollingFileAppender">
+		<rollingPolicy class="org.apache.log4j.rolling.FixedWindowRollingPolicy">
+			<param name="activeFileName" value="${CATALINA_NLOGS}/log4j_audit.log" />
+			<param name="fileNamePattern" value="${CATALINA_NLOGS}/log4j_audit.%i.log" />
+			<param name="minIndex" value="1" />
+			<param name="maxIndex" value="5" />
+		</rollingPolicy>
+		<triggeringPolicy class="org.apache.log4j.rolling.SizeBasedTriggeringPolicy">
+			<param name="maxFileSize" value="10485760" />
+		</triggeringPolicy>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="conversionPattern" value="%5p %d [user: %X{OzoneUser}] %c - %m%n" />
+		</layout>
+	</appender>
+	<appender name="perf" class="org.apache.log4j.rolling.RollingFileAppender">
+		<rollingPolicy class="org.apache.log4j.rolling.FixedWindowRollingPolicy">
+			<param name="activeFileName" value="${CATALINA_NLOGS}/log4j_perf.log" />
+			<param name="fileNamePattern" value="${CATALINA_NLOGS}/log4j_perf.%i.log" />
+			<param name="minIndex" value="1" />
+			<param name="maxIndex" value="5" />
+		</rollingPolicy>
+		<triggeringPolicy class="org.apache.log4j.rolling.SizeBasedTriggeringPolicy">
+			<param name="maxFileSize" value="10485760" />
+		</triggeringPolicy>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="conversionPattern" value="%d %c - %m%n" />
+		</layout>
+	</appender>
+
+	<!-- Async wrappers around the base appenders. -->
+	<appender name="roller-async" class="org.apache.log4j.AsyncAppender">
+		<appender-ref ref="roller" />
+	</appender>
+
+	<appender name="vde-async" class="org.apache.log4j.AsyncAppender">
+		<appender-ref ref="vde" />
+	</appender>
+	<appender name="audit-async" class="org.apache.log4j.AsyncAppender">
+		<appender-ref ref="audit" />
+	</appender>
+	<appender name="perf-async" class="org.apache.log4j.AsyncAppender">
+		<appender-ref ref="perf" />
+	</appender>
+
+	<!-- Loggers. -->
+	<!-- VDE-related loggers. -->
+	<logger name="owf.security.ldap.service" additivity="false">
+		<level value="info" />
+		<appender-ref ref="vde-async" />
+	</logger>
+	<logger name="owf.security.ldap.service.X509DnExtractor"
+		additivity="false">
+		<level value="off" />
+		<appender-ref ref="audit-async" />
+	</logger>
+
+	<!-- Auditing here. -->
+	<logger name="ozone.owf.grails.AuditOWFWebRequestsLogger"
+		additivity="false">
+		<level value="info" />
+		<appender-ref ref="audit-async" />
+	</logger>
+	<logger name="owf.security.ldap.audit.SecurityAuditLogger"
+		additivity="false">
+		<level value="info" />
+		<appender-ref ref="audit-async" />
+	</logger>
+	<logger name="grails.app.filters" additivity="false">
+		<level value="info" />
+		<appender-ref ref="audit-async" />
+	</logger>
+
+	<!-- Performance logging here. -->
+	<logger name="metric" additivity="false">
+		<level value="info" />
+		<appender-ref ref="perf-async" />
+	</logger>
+
+	<!-- When all else fails, stuff it in root. -->
+	<root>
+		<level value="error" />
+		<appender-ref ref="roller-async" />
+	</root>
+
+</log4j:configuration>
