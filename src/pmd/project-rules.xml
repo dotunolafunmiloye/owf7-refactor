@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<ruleset name="Project rules">
+  <description>Internal rules and best practices for trident that aren't covered elsewhere</description>
+  
+  <!-- Imports -->
+  <rule ref="rulesets/unusedcode.xml"/>
+  <rule ref="rulesets/basic.xml"/>
+  <rule ref="rulesets/braces.xml"/>
+
+  <!--
+    Reasons for disabling:
+    ConfusingTernary - Most cases this triggers on, the negation is a result of putting the "happy path" first
+                       which reads better than if() { handle_error(); } else { success_case();}
+  -->
+  <rule ref="rulesets/design.xml">
+    <exclude name="ConfusingTernary"/>
+  </rule>
+
+<!-- Custom rules -->
+
+</ruleset>

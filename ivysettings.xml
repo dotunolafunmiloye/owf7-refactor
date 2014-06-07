@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-settings>
+	<settings defaultResolver="main" />
+	
+	<resolvers>
+		<chain name="main" returnFirst="true">
+			<filesystem name="ivyLocal" local="true">
+			  <ivy pattern="${ivy.default.ivy.user.dir}/cache/[organisation]/[module]/[artifact]-[revision].[ext]" />
+			  <artifact pattern="${ivy.default.ivy.user.dir}/cache/[organisation]/[module]/[type]s/[artifact]-[revision].[ext]" />
+			  <artifact pattern="${ivy.default.ivy.user.dir}/cache/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]" />
+			</filesystem>
+			
+			<ibiblio name="artifactory"
+				root="http://ARTIFACTORY:PORT/artifactory/webtops"
+				m2compatible="true" />
+			
+			<url name="ozone-ivy-repo" alwaysCheckExactRevision="true">
+				<ivy pattern="http://ARTIFACTORY:PORT/artifactory/ozone-ivy-repo/[organisation]/[module]/ivys/ivy-[revision].xml" />
+				<ivy pattern="http://ARTIFACTORY:PORT/artifactory/ozone-ivy-repo/[organisation]/[module]/ivy-[revision].xml" />
+				<artifact pattern="http://ARTIFACTORY:PORT/artifactory/ozone-ivy-repo/[organisation]/[module]/[type]s/[artifact]-[revision].[ext]" />
+			</url>
+		</chain>
+		<filesystem name="stagingRepo" local="true" m2compatible="true" checksums="">
+			  <artifact pattern="${basedir}/target/m2repo/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]" />
+		</filesystem>
+	</resolvers>
+</ivy-settings>

@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="Ozone Metrics utilities" default="distrib" xmlns:ivy="antlib:org.apache.ivy.ant">
+	<!-- Project Configuration -->
+	<description>
+		Utilities for doing metrics with yammer metrics and log4j
+  </description>
+	<!-- End per-project configuration -->
+
+	<property file="project.properties"/>
+	
+	<tstamp/>
+	<property environment="env" />
+	<!-- Snapshot or release build? -->
+	<condition property="version" value="${version.base}" else="${version.base}.${DSTAMP}${TSTAMP}-SNAPSHOT">
+		<isset property="isRelease"/>
+	</condition>
+
+	<condition property="firefox.exe" value="c:/Program Files/Mozilla Firefox/firefox.exe">
+		<and>
+	  	<available file="c:/Program Files/Mozilla Firefox/firefox.exe"/>
+	  	<os family="windows"/>
+		</and>
+	</condition>
+	
+	<!-- directories -->
+	<property name="target.dir" value="${basedir}/target" />
+	<property name="src.dir" value="${basedir}/src" />
+	<property name="artifact.dir" value="${target.dir}/artifacts"/>
+	
+	<property name="src.main.java" value="${src.dir}/main/java" />
+	<property name="src.test.java" value="${src.dir}/test/java" />
+	
+	<property name="classes.main" value="${target.dir}/classes/main" />
+	<property name="classes.test" value="${target.dir}/classes/test" />
+	<property name="classes.emma" value="${target.dir}/classes/emma" />
+	
+	<!-- report directories -->
+	<property name="reports.dir" value="${target.dir}/reports" />
+	<property name="reports.junit" value="${reports.dir}/junit" />
+	<property name="reports.emma" value="${reports.dir}/emma" />
+	<property name="reports.dependencies" value="${reports.dir}/dependencies" />
+	<property name="reports.pmd" value="${reports.dir}/pmd" />
+	<property name="reports.javadoc" value="${reports.dir}/javadoc" />
+
+	<!-- where to publish artifacts -->
+	<property name="publish.resolver" value="ivyLocal"/>
+	
+	<!-- artifacts -->
+	<property name="artifact.name" value="${module.name}-${version}" />
+	<property name="file.jar" value="${artifact.dir}/${artifact.name}.jar" />
+	<property name="file.jar.source" value="${artifact.dir}/${artifact.name}-sources.jar" />
+	<property name="file.jar.javadoc" value="${artifact.dir}/${artifact.name}-javadoc.jar" />
+	<property name="file.pom" value="${artifact.dir}/${artifact.name}.pom"/>
+
+	<property name="file.emmaCoverage" value="${reports.emma}/coverage.emma"/>
+	<property name="file.emmaMetadata" value="${reports.emma}/metadata.emma"/>
+	
+	<path id="classpath.main">
+		<pathelement location="${classes.main}"/>
+	</path>
+	<path id="classpath.test">
+		<pathelement location="${classes.test}"/>
+		<path refid="classpath.main"/>
+	</path>
+	<path id="classpath.emma">
+		<pathelement location="${classes.emma}"/>
+		<path refid="classpath.test"/>
+	</path>
+	<path id="classpath.pmd">
+		<pathelement location="${src.dir}/pmd"/>
+		<path refid="classpath.test"/>
+		<path refid="classpath.deps.compile"/>
+		<path refid="classpath.deps.build"/>
+	</path>
+	
+  <path id="test.unit">
+    <fileset dir="${src.test.java}" includes="**/*.java" />
+  </path>
+	
+	<!-- ================================= 
+        Dependency Steps              
+  ================================= -->
+	<taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpath="${basedir}/ivy-2.1.0.jar" />
+	
+	<!-- If on a machine with local drive access, use that when possible -->
+	<available property="ivy.default.ivy.user.dir" value="c:/LocalApps/.ivy2" file="c:/LocalApps" />
+	
+	<property name="ivy.baseDir" value="${ivy.default.user.dir}/cache" />
+
+	<target name="resolve" description="Find all dependencies" unless="skipResolve">
+		<ivy:settings file="${basedir}/ivysettings.xml" />
+		<ivy:resolve />
+		<ivy:cachepath pathid="classpath.deps.compile" conf="provided,compile" />
+		<ivy:cachepath pathid="classpath.deps.test" conf="provided,runtime,test" />
+		<ivy:cachepath pathid="classpath.deps.build" conf="build,compile,test,runtime" />
+			
+		<taskdef name="pmd" classname="net.sourceforge.pmd.ant.PMDTask" classpathref="classpath.pmd" />
+		<taskdef resource="emma_ant.properties" classpathref="classpath.deps.build" />
+	</target>
+	
+	<target name="retrieve" depends="resolve" description="Copy dependencies to a local directory">
+		<ivy:retrieve conf="*" />
+	</target>
+
+	<target name="dependencyReport" depends="resolve" description="Generates a report on the projects dependencies">
+		<mkdir dir="${reports.dependencies}" />
+		<ivy:report todir="${reports.dependencies}" />
+	</target>
+	
+	<target name="makePom" depends="resolve" description="Creates a maven pom from the ivy settings">
+		<mkdir dir="${classes.main}/META-INF/maven"/>
+		<ivy:makepom ivyfile="${ivy.resolved.file}" pomfile="${file.pom}">
+			<mapping conf="default" scope="compile"/>
+			<mapping conf="provided" scope="provided"/>
+			<mapping conf="javadoc" scope="javadoc"/>
+			<mapping conf="sources" scope="sources"/>
+			<mapping conf="runtime" scope="runtime"/>
+		</ivy:makepom>
+		<copy file="${file.pom}" tofile="${classes.main}/META-INF/maven/pom.xml"/>
+	</target>
+
+	<!-- ================================= 
+        Build steps              
+  ================================= -->
+	<target name="compileJava" depends="resolve,makePom" description="Compile the code.">
+		<mkdir dir="${classes.main}" />
+
+		<javac srcdir="${src.main.java}" destdir="${classes.main}" 
+			classpathref="classpath.deps.compile" debug="true"	includeantruntime="false" />
+	</target>
+	
+
+	<!-- ================================= 
+        Reporting steps              
+  ================================= -->
+	<target name="javadoc" depends="resolve" description="Create javadocs">
+    <javadoc sourcepath="${src.main.java}" destdir="${reports.javadoc}"  linksource="true">
+    	<classpath>
+    		<path refid="classpath.deps.compile"/>
+    		<path refid="classpath.main"/>
+    	</classpath>
+    </javadoc>
+	</target>
+	
+	<target name="pmd" depends="resolve" description="PMD check">
+		<mkdir dir="${reports.pmd}" />
+		<!--makeurl file="${reports.javadoc}/src-html" property="pmd.linkPrefix" validate="false"/-->
+
+		<!-- note that PMD prior to version 5 will generate parse errors on Java 7 syntax -->
+		<pmd shortFilenames="true" failuresPropertyName="pmd.errors">
+			<ruleset>project-rules.xml</ruleset>
+			<formatter type="html" toFile="${reports.pmd}/index.html"  linkPrefix="../javadoc/src-html/" linePrefix="line."/>
+			<formatter type="xml" toFile="${reports.pmd}/pmd.xml"  linkPrefix="../javadoc/src-html/" linePrefix="line."/>
+			<fileset dir="${src.main.java}" includes="**/*.java"/>
+			<fileset dir="${src.test.java}" includes="**/*.java"/>			
+		</pmd>
+
+		<antcall target="openHtmlOnErrors">
+			<param name="reportPage" value="${reports.pmd}/index.html" />
+			<param name="errorCount" value="${pmd.errors}"/>
+		</antcall>
+
+	</target>
+	
+	<target name="-emmaReport" unless="skipEmma">
+		<emma>
+			<report sourcepath="${src}">
+				<fileset dir="${reports.emma}">
+					<include name="*.emma" />
+				</fileset>
+				<html outfile="${reports.emma}/index.html" />
+				<txt outfile="${reports.emma}/report.txt" />
+				<xml outfile="${reports.emma}/emma.xml" />
+			</report>
+		</emma>
+		
+		<!-- emma thresholds, just checks to see if there's a (1/20)! in the report.txt file -->
+    <resourcecount property="emma.errors">
+       <fileset dir="${reports.emma}" includes="report.txt">
+         <containsregexp expression="\(\d+/\d+\)!" />
+       </fileset>
+    </resourcecount>
+		<echo message="Emma generated ${emma.errors} errors"/>
+		<antcall target="openHtmlOnErrors">
+			<param name="reportPage" value="${reports.emma}/index.html" />
+			<param name="errorCount" value="${emma.errors}"/>
+		</antcall>
+	</target>
+	
+	<!-- ================================= 
+        Test steps              
+  ================================= -->
+	<target name="compileTestJava" depends="compileJava" description="Compile java tests">
+		<mkdir dir="${classes.test}"/>
+		<javac srcdir="${src.test.java}" destdir="${classes.test}" debug="true" includeantruntime="false">
+			<classpath>
+				<fileset dir="${classes.main}" includes="**/*"/>
+				<path refid="classpath.main"/>
+				<path refid="classpath.deps.test"/>
+			</classpath>
+		</javac>
+	</target>
+	
+	<target name="emmaInstrument" depends="compileTestJava" unless="skipEmma">
+		<mkdir dir="${classes.emma}"/>
+		<emma>
+			<instr instrpath="${classes.main}" destdir="${classes.emma}" metadatafile="${file.emmaMetadata}" merge="true"/>
+			<instr instrpath="${classes.test}" destdir="${classes.emma}" metadatafile="${file.emmaMetadata}" merge="true"/>
+		</emma>
+	</target>
+	
+	<target name="junit" depends="emmaInstrument,compileTestJava" description="Run unit tests">
+		<mkdir dir="${reports.junit}"/>
+    <junit printsummary="yes" fork="yes" forkmode="once" failureproperty="junit.failure" maxmemory="1024m">
+			<classpath>
+				<path refid="classpath.deps.test"/>
+				<path refid="classpath.emma" />
+			</classpath>
+
+			<jvmarg value="-XX:-UseSplitVerifier" /> <!-- For emma to support Java 7-->
+			<jvmarg value="-Demma.coverage.out.file=${file.emmaCoverage}" />
+			<jvmarg value="-Demma.coverage.out.merge=true" />
+
+			<formatter type="xml" />
+			<formatter type="brief" />
+			<batchtest fork="yes" todir="${reports.junit}">
+			 <path refid="test.unit"/>
+			</batchtest>
+		</junit>
+
+		<junitreport todir="${reports.junit}">
+			<fileset dir="${reports.junit}">
+				<include name="TEST-*.xml" />
+			</fileset>
+			<report todir="${reports.junit}" />
+		</junitreport>
+		
+		<antcall target="-emmaReport"/>
+
+		<!-- if no failures, junit.failure is unset.  make it zero errors in that case -->
+		<condition property="junit.errors" value="${junit.failure}" else="0">
+			<isset property="junit.failure"/>
+		</condition>
+
+		<antcall target="openHtmlOnErrors">
+ 			<param name="reportPage" value="${reports.junit}/index.html" />
+ 			<param name="errorCount" value="${junit.errors}"/>
+ 		</antcall>
+		
+		<fail if="junit.failure" message="Unit test(s) failed.  See reports!"/>
+	</target>
+
+	<target name="test" depends="junit,pmd" description="Run Tests">
+		
+	</target>
+	
+	<!-- ================================= 
+        Build Artifacts              
+  ================================= -->
+	<target name="jar" depends="compileJava,test" description="Make the project jar">
+		<jar destfile="${file.jar}" basedir="${classes.main}">
+			<manifest>
+				<attribute name="Implementation-Version" value="${version}" />
+				<attribute name="Build-Time" value="${DSTAMP}.${TSTAMP}" />
+			</manifest>
+		</jar>	
+	</target>
+	
+	<target name="sourceJar" description="Make the source jar">
+		<jar destfile="${file.jar.source}" basedir="${src.main.java}">
+			<manifest>
+				<attribute name="Implementation-Version" value="${version}" />
+				<attribute name="Build-Time" value="${DSTAMP}.${TSTAMP}" />
+			</manifest>
+		</jar>	
+	</target>
+	
+	<target name="javadocJar" depends="javadoc" description="Make the javadoc jar">
+		<jar destfile="${file.jar.javadoc}" basedir="${reports.javadoc}">
+			<manifest>
+				<attribute name="Implementation-Version" value="${version}" />
+				<attribute name="Build-Time" value="${DSTAMP}.${TSTAMP}" />
+			</manifest>
+		</jar>	
+	</target>
+	
+	<target name="distrib" depends="jar,sourceJar,javadocJar" description="Produce all artifacts for distribution.">
+	</target>
+	
+	<target name="publish" depends="distrib" description="Publish all artifacts to the default repository">
+		<ivy:publish resolver="${publish.resolver}" pubrevision="${version}" overwrite="true">
+			<artifacts pattern="${artifact.dir}/[artifact]-[revision](-[classifier]).[ext]" />
+		</ivy:publish>
+	</target>
+	
+	<target name="clean">
+		<delete dir="${target.dir}" />
+	</target>
+	
+	<!-- ================================= 
+        Utils              
+  ================================= -->
+	
+	<target name="openHtmlOnErrors">
+		<echo message="Found ${errorCount} in ${reportPage}"/>
+		<!-- do not open if: -->
+		<!--    errorCount is not set -->
+		<!--    errorCount is not true or zero -->
+		<condition property="doNotOpenFirefox">
+			<or>
+				<not><isset property="errorCount"/></not>
+				<and>
+        	<not><istrue value="${errorCount}"/></not>
+					<equals arg1="${errorCount}" arg2="0"/>
+				</and>
+			</or>
+		</condition>
+		<antcall target="openHTML"/>
+	</target>
+	
+  <target name="openHTML" if="firefox.exe" unless="doNotOpenFirefox">
+		<makeurl file="${reportPage}" property="url" validate="false"/> 
+    <exec executable="${firefox.exe}" spawn="true">
+      <arg value="${url}"/>
+    </exec>   
+  </target>	
+
+</project>
